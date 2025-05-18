@@ -7,5 +7,5 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
-  base: '/collaborative-whiteboard/', // Replace with your Github project name
+  base: '/', // Replace with your Github project name
 });
