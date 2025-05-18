@@ -37,6 +37,7 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      transports: ['websocket'],
     });
 
     setSocket(newSocket);
