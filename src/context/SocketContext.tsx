@@ -1,7 +1,13 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { io, Socket } from 'socket.io-client';
-import { v4 as uuidv4 } from 'uuid';
-import { User, Room, ShapeProps } from '../types';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import { io, Socket } from "socket.io-client";
+import { v4 as uuidv4 } from "uuid";
+import { User, Room, ShapeProps } from "../types";
 
 interface SocketContextType {
   socket: Socket | null;
@@ -16,34 +22,46 @@ interface SocketContextType {
   updateShape: (id: string, changes: Partial<ShapeProps>) => void;
   deleteShape: (id: string) => void;
   clearShapes: () => void;
-  sendBackgroundUpdate: (background: { type: 'color' | 'image'; value: string }) => void;
+  sendBackgroundUpdate: (background: {
+    type: "color" | "image";
+    value: string;
+  }) => void;
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:3001";
 
-
-export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const SocketProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
   const [users, setUsers] = useState<User[]>([]);
-
   useEffect(() => {
     const newSocket = io(SOCKET_URL, {
-      autoConnect: false,
+      autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
-      transports: ['websocket'],
+      transports: ["websocket"],
+    });
+
+    newSocket.on("connect", () => {
+      console.log("Socket connected:", newSocket.id);
+    });
+
+    newSocket.on("connect_error", (err) => {
+      console.error("Connection error:", err.message);
     });
 
     setSocket(newSocket);
 
     return () => {
       newSocket.disconnect();
+      newSocket.off(); // ✅ Cleanup all listeners
     };
   }, []);
 
@@ -65,16 +83,16 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     };
 
     const onUserJoined = (user: User) => {
-      setUsers(prev => [...prev, user]);
+      setUsers((prev) => [...prev, user]);
     };
 
     const onUserLeft = (userId: string) => {
-      setUsers(prev => prev.filter(user => user.id !== userId));
+      setUsers((prev) => prev.filter((user) => user.id !== userId));
     };
 
     const onCursorMove = (data: { userId: string; x: number; y: number }) => {
-      setUsers(prev =>
-        prev.map(user =>
+      setUsers((prev) =>
+        prev.map((user) =>
           user.id === data.userId
             ? { ...user, cursor: { x: data.x, y: data.y } }
             : user
@@ -83,60 +101,75 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     };
 
     const onShapeAdded = (shape: ShapeProps) => {
-      window.dispatchEvent(new CustomEvent('shape:added', { detail: shape }));
+      window.dispatchEvent(new CustomEvent("shape:added", { detail: shape }));
     };
 
-    const onShapeUpdated = (data: { shapeId: string; changes: Partial<ShapeProps> }) => {
-      window.dispatchEvent(new CustomEvent('shape:updated', { detail: data }));
+    const onShapeUpdated = (data: {
+      shapeId: string;
+      changes: Partial<ShapeProps>;
+    }) => {
+      window.dispatchEvent(new CustomEvent("shape:updated", { detail: data }));
     };
 
     const onShapeDeleted = (shapeId: string) => {
-      window.dispatchEvent(new CustomEvent('shape:deleted', { detail: shapeId }));
+      window.dispatchEvent(
+        new CustomEvent("shape:deleted", { detail: shapeId })
+      );
     };
 
     const onShapesCleared = () => {
-      window.dispatchEvent(new CustomEvent('shapes:cleared'));
+      window.dispatchEvent(new CustomEvent("shapes:cleared"));
     };
 
-    const onBackgroundUpdated = (background: { type: 'color' | 'image'; value: string }) => {
-      window.dispatchEvent(new CustomEvent('background:updated', { detail: background }));
+    const onBackgroundUpdated = (background: {
+      type: "color" | "image";
+      value: string;
+    }) => {
+      window.dispatchEvent(
+        new CustomEvent("background:updated", { detail: background })
+      );
     };
 
-    socket.on('connect', onConnect);
-    socket.on('disconnect', onDisconnect);
-    socket.on('room:joined', onRoomJoined);
-    socket.on('user:joined', onUserJoined);
-    socket.on('user:left', onUserLeft);
-    socket.on('cursor:move', onCursorMove);
-    socket.on('shape:added', onShapeAdded);
-    socket.on('shape:updated', onShapeUpdated);
-    socket.on('shape:deleted', onShapeDeleted);
-    socket.on('shapes:cleared', onShapesCleared);
-    socket.on('background:updated', onBackgroundUpdated);
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("room:joined", onRoomJoined);
+    socket.on("user:joined", onUserJoined);
+    socket.on("user:left", onUserLeft);
+    socket.on("cursor:move", onCursorMove);
+    socket.on("shape:added", onShapeAdded);
+    socket.on("shape:updated", onShapeUpdated);
+    socket.on("shape:deleted", onShapeDeleted);
+    socket.on("shapes:cleared", onShapesCleared);
+    socket.on("background:updated", onBackgroundUpdated);
 
     return () => {
-      socket.off('connect', onConnect);
-      socket.off('disconnect', onDisconnect);
-      socket.off('room:joined', onRoomJoined);
-      socket.off('user:joined', onUserJoined);
-      socket.off('user:left', onUserLeft);
-      socket.off('cursor:move', onCursorMove);
-      socket.off('shape:added', onShapeAdded);
-      socket.off('shape:updated', onShapeUpdated);
-      socket.off('shape:deleted', onShapeDeleted);
-      socket.off('shapes:cleared', onShapesCleared);
-      socket.off('background:updated', onBackgroundUpdated);
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("room:joined", onRoomJoined);
+      socket.off("user:joined", onUserJoined);
+      socket.off("user:left", onUserLeft);
+      socket.off("cursor:move", onCursorMove);
+      socket.off("shape:added", onShapeAdded);
+      socket.off("shape:updated", onShapeUpdated);
+      socket.off("shape:deleted", onShapeDeleted);
+      socket.off("shapes:cleared", onShapesCleared);
+      socket.off("background:updated", onBackgroundUpdated);
     };
   }, [socket]);
 
   const joinRoom = (name: string, roomId: string) => {
     if (!socket) return;
-    
+
     const colors = [
-      '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899'
+      "#EF4444",
+      "#F59E0B",
+      "#10B981",
+      "#3B82F6",
+      "#8B5CF6",
+      "#EC4899",
     ];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    
+
     const userId = uuidv4();
     const user: User = {
       id: userId,
@@ -148,13 +181,13 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       socket.connect();
     }
 
-    socket.emit('room:join', { user, roomId });
+    socket.emit("room:join", { user, roomId });
   };
 
   const leaveRoom = () => {
     if (!socket || !currentRoom) return;
-    
-    socket.emit('room:leave', { roomId: currentRoom.id });
+
+    socket.emit("room:leave", { roomId: currentRoom.id });
     setCurrentRoom(null);
     setCurrentUser(null);
     setUsers([]);
@@ -162,8 +195,8 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const sendCursorPosition = (x: number, y: number) => {
     if (!socket || !currentRoom || !currentUser) return;
-    
-    socket.emit('cursor:move', {
+
+    socket.emit("cursor:move", {
       roomId: currentRoom.id,
       userId: currentUser.id,
       x,
@@ -173,8 +206,8 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const sendShape = (shape: ShapeProps) => {
     if (!socket || !currentRoom) return;
-    
-    socket.emit('shape:add', {
+
+    socket.emit("shape:add", {
       roomId: currentRoom.id,
       shape,
     });
@@ -182,8 +215,8 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const updateShape = (id: string, changes: Partial<ShapeProps>) => {
     if (!socket || !currentRoom) return;
-    
-    socket.emit('shape:update', {
+
+    socket.emit("shape:update", {
       roomId: currentRoom.id,
       shapeId: id,
       changes,
@@ -192,8 +225,8 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const deleteShape = (id: string) => {
     if (!socket || !currentRoom) return;
-    
-    socket.emit('shape:delete', {
+
+    socket.emit("shape:delete", {
       roomId: currentRoom.id,
       shapeId: id,
     });
@@ -201,16 +234,19 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const clearShapes = () => {
     if (!socket || !currentRoom) return;
-    
-    socket.emit('shapes:clear', {
+
+    socket.emit("shapes:clear", {
       roomId: currentRoom.id,
     });
   };
 
-  const sendBackgroundUpdate = (background: { type: 'color' | 'image'; value: string }) => {
+  const sendBackgroundUpdate = (background: {
+    type: "color" | "image";
+    value: string;
+  }) => {
     if (!socket || !currentRoom) return;
-    
-    socket.emit('background:update', {
+
+    socket.emit("background:update", {
       roomId: currentRoom.id,
       background,
     });
@@ -242,7 +278,7 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 export const useSocket = (): SocketContextType => {
   const context = useContext(SocketContext);
   if (context === undefined) {
-    throw new Error('useSocket must be used within a SocketProvider');
+    throw new Error("useSocket must be used within a SocketProvider");
   }
   return context;
 };

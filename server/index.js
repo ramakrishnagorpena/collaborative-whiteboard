@@ -7,8 +7,9 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://collaborative-whiteboard-teal.vercel.app/",
+    origin: "https://collaborative-whiteboard-teal.vercel.app",
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
