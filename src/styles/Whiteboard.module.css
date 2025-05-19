@@ -1,3 +1,5 @@
+/* Whiteboard.module.css - Updated for responsive design and toolbar toggle */
+
 .container {
   display: flex;
   flex-direction: column;
@@ -26,22 +28,27 @@
   position: relative;
   overflow: hidden;
   background-color: #f9fafb;
-  background-image: 
-    linear-gradient(rgba(166, 166, 166, 0.1) 1px, transparent 1px),
+  background-image: linear-gradient(
+      rgba(166, 166, 166, 0.1) 1px,
+      transparent 1px
+    ),
     linear-gradient(90deg, rgba(166, 166, 166, 0.1) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
 .dark .whiteboardContainer {
   background-color: #111827;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+  background-image: linear-gradient(
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px
+    ),
     linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
 }
 
+/* Updated Toolbar Styles with Collapsible Feature */
 .toolbar {
   position: absolute;
-  top: 20px;
+  /* top: 20px; */
   left: 20px;
   display: flex;
   flex-direction: column;
@@ -49,13 +56,56 @@
   background-color: white;
   border-radius: 8px;
   padding: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   z-index: 10;
+  transition: all 0.3s ease;
+  max-height: calc(100vh - 160px);
+  overflow-y: scroll;
 }
 
 .dark .toolbar {
   background-color: #374151;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+.toolbarContent {
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.toolbarCollapseButton {
+  /* position: absolute; */
+  /* top: 8px; */
+  /* right: 8px; */
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 11;
+}
+
+.dark .toolbarCollapseButton {
+  background-color: #4b5563;
+  color: #d1d5db;
+}
+
+.collapsed {
+  width: 64px;
+}
+
+.collapsed .toolbarCollapseButton {
+  right: 50%;
+  transform: translateX(50%);
+}
+
+.hidden {
+  display: none;
 }
 
 .toolbarSection {
@@ -78,12 +128,11 @@
 .toolButton {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
+  padding: 8px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
+  gap: 8px;
 }
 
 .toolButton:hover {
@@ -105,21 +154,9 @@
   color: white;
 }
 
-.propertiesPanel {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: white;
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  z-index: 10;
-  width: 220px;
-}
-
-.dark .propertiesPanel {
-  background-color: #374151;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+.toolLabel {
+  font-size: 0.875rem;
+  white-space: nowrap;
 }
 
 .propertyGroup {
@@ -189,6 +226,30 @@
   margin-top: 0.5rem;
 }
 
+.fileInput {
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+/* Mobile toolbar toggle button */
+.mobileToggleButton {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #3b82f6;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Users Panel Styles */
 .usersPanel {
   position: absolute;
   bottom: 20px;
@@ -196,7 +257,8 @@
   background-color: white;
   border-radius: 8px;
   padding: 1rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   z-index: 10;
   width: 220px;
   max-height: 300px;
@@ -205,7 +267,8 @@
 
 .dark .usersPanel {
   background-color: #374151;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 2px 4px -1px rgba(0, 0, 0, 0.2);
 }
 
 .usersList {
@@ -237,6 +300,7 @@
   color: #f9fafb;
 }
 
+/* Cursor Overlay */
 .cursorContainer {
   position: absolute;
   pointer-events: none;
@@ -273,6 +337,7 @@
   color: #1f2937;
 }
 
+/* Join Room Styles */
 .joinContainer {
   display: flex;
   flex-direction: column;
@@ -291,14 +356,16 @@
   background-color: white;
   border-radius: 8px;
   padding: 2rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   width: 100%;
   max-width: 400px;
 }
 
 .dark .joinForm {
   background-color: #1f2937;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 2px 4px -1px rgba(0, 0, 0, 0.2);
 }
 
 .formGroup {
@@ -402,24 +469,51 @@
   background-color: #4b5563;
 }
 
-@media (max-width: 768px) {
+/* Media queries for responsive design */
+@media (max-width: 1024px) {
   .toolbar {
-    top: auto;
-    bottom: 20px;
+    width: auto;
+    overflow-y: scroll;
+  }
+
+  .collapsed {
+    width: 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  .mobileToggleButton {
+    display: flex;
+  }
+
+  .toolbar {
     left: 50%;
     transform: translateX(-50%);
+    top: auto;
+    bottom: -100%;
+    width: calc(100% - 40px);
     flex-direction: row;
-    flex-wrap: wrap;
-    max-width: calc(100% - 40px);
-    justify-content: center;
+    transition: bottom 0.3s ease;
+    max-height: 60vh;
+    overflow-y: scroll;
+  }
+
+  .showMobile {
+    bottom: 80px;
+  }
+
+  .collapsed {
+    width: calc(100% - 40px);
   }
 
   .toolbarSection {
     flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
     border-bottom: none;
     border-right: 1px solid #e5e7eb;
-    padding-bottom: 0;
-    padding-right: 0.5rem;
+    padding-right: 8px;
+    margin-right: 8px;
   }
 
   .dark .toolbarSection {
@@ -429,15 +523,45 @@
   .toolbarSection:last-child {
     border-right: none;
     padding-right: 0;
+    margin-right: 0;
   }
 
-  .propertiesPanel {
-    top: auto;
-    bottom: 100px;
-    right: auto;
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100% - 40px);
-    max-width: 400px;
+  .colorPicker {
+    justify-content: center;
+  }
+
+  .usersPanel {
+    bottom: 80px;
+    right: 10px;
+    width: 180px;
+  }
+
+  .toolbarCollapseButton {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar {
+    padding: 0.5rem;
+    max-height: 50vh;
+    overflow-y: scroll;
+  }
+
+  .toolButton {
+    padding: 6px;
+  }
+
+  .toolLabel {
+    display: none;
+  }
+
+  .usersPanel {
+    width: 150px;
+    padding: 0.5rem;
+  }
+
+  .userItem {
+    padding: 0.25rem;
   }
 }

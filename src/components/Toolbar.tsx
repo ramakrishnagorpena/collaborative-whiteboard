@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styles from '../styles/Whiteboard.module.css';
 import { Tool } from '../types';
 import { useTheme } from '../context/ThemeContext';
-import { 
-  MousePointer, 
-  Pencil, 
-  Square, 
-  Circle as CircleIcon, 
-  Type, 
-  Eraser, 
+import {
+  MousePointer,
+  Pencil,
+  Square,
+  Circle as CircleIcon,
+  Type,
+  Eraser,
   Minus,
   Download,
   Trash2,
@@ -16,7 +16,10 @@ import {
   Redo as RedoIcon,
   Image,
   XCircle,
-} from 'lucide-react';
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+} from "lucide-react";
 
 interface ToolbarProps {
   activeTool: Tool;
@@ -56,7 +59,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onBackgroundChange,
 }) => {
   const { theme } = useTheme();
-  
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showMobileToolbar, setShowMobileToolbar] = useState(false);
+
   const colors = [
     '#000000', // Black
     '#ffffff', // White
@@ -99,132 +104,172 @@ const Toolbar: React.FC<ToolbarProps> = ({
     }
   };
 
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
+  const toggleMobileToolbar = () => {
+    setShowMobileToolbar(!showMobileToolbar);
+  };
+
   return (
-    <div className={`${styles.toolbar} ${theme === 'dark' ? styles.dark : ''}`}>
-      <div className={styles.toolbarSection}>
-        {tools.map((tool) => (
-          <div
-            key={tool.id}
-            className={`${styles.toolButton} ${
-              activeTool === tool.id ? styles.activeToolButton : ''
-            }`}
-            onClick={() => setActiveTool(tool.id)}
-            title={tool.label}
-          >
-            {tool.icon}
-          </div>
-        ))}
+    <>
+      {/* Mobile Toolbar Toggle Button */}
+      <div className={styles.mobileToggleButton} onClick={toggleMobileToolbar}>
+        <Menu size={24} />
       </div>
-      
-      <div className={styles.toolbarSection}>
-        {actions.map((action) => (
-          <div
-            key={action.id}
-            className={styles.toolButton}
-            onClick={action.onClick}
-            title={action.label}
-          >
-            {action.icon}
-          </div>
-        ))}
-      </div>
-      
-      <div className={styles.toolbarSection}>
-        <div className={styles.propertyGroup}>
-          <span className={styles.propertyLabel}>Stroke</span>
-          <div className={styles.colorPicker}>
-            {colors.map((color) => (
+
+      {/* Desktop Toolbar */}
+      <div
+        className={`${styles.toolbar} ${theme === "dark" ? styles.dark : ""} ${
+          isCollapsed ? styles.collapsed : ""
+        } ${showMobileToolbar ? styles.showMobile : ""}`}
+      >
+        <div className={styles.toolbarCollapseButton} onClick={toggleCollapse}>
+          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </div>
+
+        <div
+          className={`${styles.toolbarContent} ${
+            isCollapsed ? styles.hidden : ""
+          }`}
+        >
+          <div className={styles.toolbarSection}>
+            {tools.map((tool) => (
               <div
-                key={`stroke-${color}`}
-                className={`${styles.colorOption} ${
-                  strokeColor === color ? styles.activeColorOption : ''
+                key={tool.id}
+                className={`${styles.toolButton} ${
+              activeTool === tool.id ? styles.activeToolButton : ''
                 }`}
-                style={{ backgroundColor: color, borderColor: color === '#ffffff' ? '#d1d5db' : 'transparent' }}
-                onClick={() => setStrokeColor(color)}
-              />
+                onClick={() => setActiveTool(tool.id)}
+                title={tool.label}
+              >
+                {tool.icon}
+                {!isCollapsed && (
+                  <span className={styles.toolLabel}>{tool.label}</span>
+                )}
+              </div>
             ))}
           </div>
-          <input
-            type="range"
-            min="1"
-            max="20"
-            value={strokeWidth}
-            onChange={(e) => setStrokeWidth(parseInt(e.target.value))}
-            className={styles.rangeInput}
-          />
-        </div>
-      </div>
-      
-      <div className={styles.toolbarSection}>
-        <div className={styles.propertyGroup}>
-          <span className={styles.propertyLabel}>Fill</span>
-          <div className={styles.colorPicker}>
-            <div
+
+          <div className={styles.toolbarSection}>
+            {actions.map((action) => (
+              <div
+                key={action.id}
+                className={styles.toolButton}
+                onClick={action.onClick}
+                title={action.label}
+              >
+                {action.icon}
+                {!isCollapsed && (
+                  <span className={styles.toolLabel}>{action.label}</span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {!isCollapsed && (
+            <>
+              <div className={styles.toolbarSection}>
+                <div className={styles.propertyGroup}>
+                  <span className={styles.propertyLabel}>Stroke</span>
+                  <div className={styles.colorPicker}>
+                    {colors.map((color) => (
+                      <div
+                        key={`stroke-${color}`}
+                        className={`${styles.colorOption} ${
+                  strokeColor === color ? styles.activeColorOption : ''
+                        }`}
+                style={{ backgroundColor: color, borderColor: color === '#ffffff' ? '#d1d5db' : 'transparent' }}
+                        onClick={() => setStrokeColor(color)}
+                      />
+                    ))}
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="20"
+                    value={strokeWidth}
+                    onChange={(e) => setStrokeWidth(parseInt(e.target.value))}
+                    className={styles.rangeInput}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.toolbarSection}>
+                <div className={styles.propertyGroup}>
+                  <span className={styles.propertyLabel}>Fill</span>
+                  <div className={styles.colorPicker}>
+                    <div
               className={`${styles.colorOption} ${styles.noFillOption} ${
                 fillColor === 'transparent' ? styles.activeColorOption : ''
-              }`}
+                      }`}
               onClick={() => setFillColor('transparent')}
-              title="No Fill"
-            >
-              <XCircle size={16} />
-            </div>
-            {colors.map((color) => (
-              <div
-                key={`fill-${color}`}
-                className={`${styles.colorOption} ${
+                      title="No Fill"
+                    >
+                      <XCircle size={16} />
+                    </div>
+                    {colors.map((color) => (
+                      <div
+                        key={`fill-${color}`}
+                        className={`${styles.colorOption} ${
                   fillColor === color ? styles.activeColorOption : ''
-                }`}
+                        }`}
                 style={{ backgroundColor: color, borderColor: color === '#ffffff' ? '#d1d5db' : 'transparent' }}
-                onClick={() => setFillColor(color)}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-      
+                        onClick={() => setFillColor(color)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
       {activeTool === 'text' && (
-        <div className={styles.toolbarSection}>
-          <div className={styles.propertyGroup}>
-            <span className={styles.propertyLabel}>Font Size</span>
-            <input
-              type="range"
-              min="12"
-              max="72"
-              value={fontSize}
-              onChange={(e) => setFontSize(parseInt(e.target.value))}
-              className={styles.rangeInput}
-            />
-            <span>{fontSize}px</span>
-          </div>
-        </div>
-      )}
+                <div className={styles.toolbarSection}>
+                  <div className={styles.propertyGroup}>
+                    <span className={styles.propertyLabel}>Font Size</span>
+                    <input
+                      type="range"
+                      min="12"
+                      max="72"
+                      value={fontSize}
+                      onChange={(e) => setFontSize(parseInt(e.target.value))}
+                      className={styles.rangeInput}
+                    />
+                    <span>{fontSize}px</span>
+                  </div>
+                </div>
+              )}
 
       {activeTool === 'background' && (
-        <div className={styles.toolbarSection}>
-          <div className={styles.propertyGroup}>
-            <span className={styles.propertyLabel}>Background</span>
-            <div className={styles.colorPicker}>
-              {colors.map((color) => (
-                <div
-                  key={`bg-${color}`}
-                  className={`${styles.colorOption} ${
+                <div className={styles.toolbarSection}>
+                  <div className={styles.propertyGroup}>
+                    <span className={styles.propertyLabel}>Background</span>
+                    <div className={styles.colorPicker}>
+                      {colors.map((color) => (
+                        <div
+                          key={`bg-${color}`}
+                          className={`${styles.colorOption} ${
                     background?.type === 'color' && background.value === color ? styles.activeColorOption : ''
-                  }`}
+                          }`}
                   style={{ backgroundColor: color, borderColor: color === '#ffffff' ? '#d1d5db' : 'transparent' }}
                   onClick={() => onBackgroundChange('color', color)}
-                />
-              ))}
-            </div>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleBackgroundImageChange}
-              className={styles.fileInput}
-            />
-          </div>
+                        />
+                      ))}
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBackgroundImageChange}
+                      className={styles.fileInput}
+                    />
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 };
 
