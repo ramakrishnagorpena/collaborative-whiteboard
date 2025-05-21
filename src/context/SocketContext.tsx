@@ -42,7 +42,7 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({
   const [users, setUsers] = useState<User[]>([]);
   useEffect(() => {
     const newSocket = io(SOCKET_URL, {
-      autoConnect: true,
+      autoConnect: false,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
@@ -60,8 +60,9 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({
     setSocket(newSocket);
 
     return () => {
-      newSocket.disconnect();
-      newSocket.off(); // ✅ Cleanup all listeners
+      if (newSocket.connected) {
+        newSocket.disconnect();
+      }
     };
   }, []);
 
@@ -70,6 +71,13 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({
 
     const onConnect = () => {
       setConnected(true);
+      // Rejoin room if we were previously in one
+      if (currentUser && currentRoom) {
+        socket.emit("room:join", {
+          user: currentUser,
+          roomId: currentRoom.id,
+        });
+      }
     };
 
     const onDisconnect = () => {
@@ -142,6 +150,8 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({
     socket.on("shapes:cleared", onShapesCleared);
     socket.on("background:updated", onBackgroundUpdated);
 
+    socket.connect();
+
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
@@ -155,7 +165,7 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({
       socket.off("shapes:cleared", onShapesCleared);
       socket.off("background:updated", onBackgroundUpdated);
     };
-  }, [socket]);
+  }, [socket, currentUser, currentRoom]);
 
   const joinRoom = (name: string, roomId: string) => {
     if (!socket) return;
